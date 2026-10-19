@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_crm_product_line,crm.product.line,model_crm_product_line,,1,1,1,1
+access_crm_lead,PUBLIC crm.lead,crm.model_crm_lead,,1,1,1,1
+access_crm_lead2opportunity_partner,PUBLIC crm.lead2opportunity.partner,crm.model_crm_lead2opportunity_partner,,1,1,1,1

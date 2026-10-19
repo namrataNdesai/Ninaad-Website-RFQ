@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="header_search_products_only" inherit_id="website.header_search_box_input" name="Header Search Products Only">
+        <xpath expr="//t[@t-set='search_type']" position="attributes">
+            <attribute name="t-valuef">products_only</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='display_image']" position="attributes">
+            <attribute name="t-valuef">false</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='display_description']" position="attributes">
+            <attribute name="t-valuef">false</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='display_extra_link']" position="attributes">
+            <attribute name="t-valuef">false</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='display_detail']" position="attributes">
+            <attribute name="t-valuef">false</attribute>
+        </xpath>
+    </template>
+
+    <template id="product_name_only_hybrid_results" inherit_id="website.list_hybrid" name="Product Name Only Search Results">
+        <xpath expr="//t[@t-call='website.website_search_box_input']/t[@t-set='search_type']" position="replace">
+            <t t-set="search_type" t-value="'products_only' if request.httprequest.path == '/website/search' or request.httprequest.path.startswith('/website/search/page/') or request.httprequest.path.startswith('/website/search/products_only') else 'all'"/>
+        </xpath>
+        <xpath expr="//t[@t-call='website.website_search_box_input']" position="inside">
+            <t t-set="display_image" t-value="'false' if request.httprequest.path == '/website/search' or request.httprequest.path.startswith('/website/search/page/') or request.httprequest.path.startswith('/website/search/products_only') else 'true'"/>
+            <t t-set="display_description" t-value="'false' if request.httprequest.path == '/website/search' or request.httprequest.path.startswith('/website/search/page/') or request.httprequest.path.startswith('/website/search/products_only') else 'true'"/>
+            <t t-set="display_extra_link" t-value="'false' if request.httprequest.path == '/website/search' or request.httprequest.path.startswith('/website/search/page/') or request.httprequest.path.startswith('/website/search/products_only') else 'true'"/>
+            <t t-set="display_detail" t-value="'false' if request.httprequest.path == '/website/search' or request.httprequest.path.startswith('/website/search/page/') or request.httprequest.path.startswith('/website/search/products_only') else 'true'"/>
+        </xpath>
+        <xpath expr="//t[@t-call='website.one_hybrid']" position="replace">
+            <t t-foreach="results" t-as="result">
+                <t t-set="product_name_only_search" t-value="request.httprequest.path == '/website/search' or request.httprequest.path.startswith('/website/search/page/') or request.httprequest.path.startswith('/website/search/products_only')"/>
+                <a t-if="product_name_only_search" t-att-href="result.get('website_url')" class="dropdown-item p-2 text-wrap">
+                    <t t-out="result['name']"/>
+                </a>
+                <t t-else="">
+                    <t t-call="website.one_hybrid"/>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Request to Quote button (+ guest modal). Used by the cart
+         navigation buttons and by the RFQ list page. -->
+    <template id="rfq_quote_button" name="RFQ : Request to Quote button">
+                <t t-if="request.env.user._is_public()">
+            <a role="button" name="website_sale_quote_button" class="btn btn-primary  w-100" data-bs-toggle="modal" data-bs-target="#mysalequote">
+                Request to Quote
+                <i class="fa fa-angle-right ms-2 fw-light"></i>
+            </a>
+
+            <!-- The Modal -->
+            <div class="modal fade" role="dialog" id="mysalequote">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+
+                    <!-- Modal Header -->
+                    <div class="modal-header pb-0">
+                        <h4 class="modal-title">Request to Quote</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                        <form action="/web/crm-quote-request" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="campaign_id" t-att-value="request.httprequest.args.get('campaign_id', '0')"/>
+                            <input type="hidden" name="medium_id" t-att-value="request.httprequest.args.get('medium_id', '0')"/>
+                            <input type="hidden" name="source_id" t-att-value="request.httprequest.args.get('source_id', '0')"/>
+
+                            <div class="mb-3 mt-3">
+                                <label for="name" class="form-label">Name:</label>
+                                <input type="text" class="form-control" id="name" placeholder="Enter name" name="name" required="required"/>
+                            </div>
+                            <div class="mb-3 mt-3">
+                                <label for="email" class="form-label">Email:</label>
+                                <input type="email" class="form-control" id="email" placeholder="Enter email" name="email" required="required"/>
+                            </div>
+                            <div class="mb-3 mt-3">
+                                <label for="phone" class="form-label">Phone:</label>
+                                <input type="text" class="form-control" id="phone" placeholder="Enter Phone" name="phone" required="required"/>
+                            </div>
+                            <div class="mb-3 mt-3">
+                                <label for="phone" class="form-label">Location:</label>
+                                <input type="text" class="form-control" id="location" placeholder="Enter Your Location" name="location" required="required"/>
+                            </div>
+                             <div class="mb-3 mt-3">
+                                <label for="company" class="form-label">Company:</label>
+                                <input type="text" class="form-control" id="company" placeholder="Enter Your Company Name" name="company"/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">Note:</label>
+                                <textarea id="notes" name="notes" class="form-control" rows="4" cols="50" required="required"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="float: right;">Submit</button>
+                        </form>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+
+        <t t-else="">
+            <a role="button" name="website_sale_quote_button" class="btn btn-primary w-100" href="/web/crm-quote-request">
+                Request to Quote
+                <i class="fa fa-angle-right ms-2 fw-light"></i>
+            </a>
+        </t>
+
+    </template>
+
+     <template id="accept_terms_and_conditions_extend"
+              inherit_id="website_sale.navigation_buttons"
+              name="Website Quote Extend">
+
+        <xpath expr="//a[@name='website_sale_main_button']" position="attributes">
+            <attribute name="t-if">not request.website.company_id.allow_rfq</attribute>
+        </xpath>
+        <xpath expr="//a[@name='website_sale_main_button']" position="before">
+            <t t-if="request.website.company_id.allow_rfq">
+                <t t-call="ninaad_website_rfq.rfq_quote_button"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="product_extend"
+              inherit_id="website_sale.product"
+              name="Website Quote Extend">
+        <xpath expr="//div[@id='add_to_cart_wrap']/a[@id='add_to_cart']" position="replace">
+            <t t-set="config" t-value="request.website.company_id.allow_rfq"/>
+            <t t-if="config">
+                <!-- No id="add_to_cart" / a-submit here: website_sale's JS binds
+                     to those and would create a sale.order. -->
+                <a role="button"
+                   id="ninaad_add_to_rfq"
+                   class="btn btn-primary js_check_product o_ninaad_rfq_add flex-grow-1"
+                   href="#">
+                    <i class="fa fa-shopping-cart me-2"/>
+                    Add to RFQ List
+                </a>
+            </t>
+
+            <t t-else="">
+                <a data-animation-selector=".o_wsale_product_images" role="button" id="add_to_cart" t-attf-class="btn btn-primary js_check_product a-submit flex-grow-1" href="#">
+                    <i class="fa fa-shopping-cart me-2"/>
+                    Add to cart
+                </a>
+            </t>
+
+        </xpath>
+    </template>
+
+    <template id="products_item_extend"
+              inherit_id="website_sale.products_item">
+        <xpath expr="//t[@t-set='product_href']" position="replace">
+            <t t-set="campaign_id" t-value="request.httprequest.args.get('campaign_id', '0')" />
+            <t t-set="medium_id" t-value="request.httprequest.args.get('medium_id', '0')" />
+            <t t-set="source_id" t-value="request.httprequest.args.get('source_id', '0')" />
+
+            <t t-set="base_href"
+               t-value="keep(product.website_url, page=(pager['page']['num'] if pager['page']['num']&gt;1 else None)) + selected_attributes_hash"/>
+
+            <t t-set="marketing_url"
+               t-value="('&amp;' if '?' in base_href else '?') + 'campaign_id=' + campaign_id + '&amp;medium_id=' + medium_id + '&amp;source_id=' + source_id"/>
+
+            <t t-set="product_href" t-value="base_href + marketing_url"/>
+
+        </xpath>
+
+        <xpath expr="//div[hasclass('product_price')]" position="attributes">
+            <attribute name="t-if">
+                request.website.company_id.show_price
+            </attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_wsale_product_sub')]" position="after">
+                <t t-if="request.website.company_id.allow_rfq">
+                    <!-- RFQ mode: session list, never a sale.order. -->
+                    <a t-if="product.product_variant_count == 1"
+                       role="button"
+                       href="#"
+                       t-att-data-product-id="product.product_variant_id.id"
+                       class="btn o_ninaad_rfq_add mt-2 align-items-center justify-content-center"
+                       style="background-color: rgb(192, 57, 43); border-color: rgb(192, 57, 43); color: rgb(255, 255, 255); border-radius: 6px; padding: 0.5rem 1rem; text-align: center; font-weight: 500; box-shadow: rgba(192, 57, 43, 0.3) 0px 1px 2px; transition: background-color 0.2s;"
+                       onmouseover="this.style.backgroundColor='#962D22'; this.style.borderColor='#962D22';" onmouseout="this.style.backgroundColor='#C0392B'; this.style.borderColor='#C0392B';">
+                        <i class="fa fa-shopping-cart me-2"/>
+                        Add to RFQ List
+                    </a>
+                    <a t-else=""
+                       role="button"
+                       t-att-href="product_href"
+                       class="btn mt-2 align-items-center justify-content-center"
+                       style="background-color: rgb(192, 57, 43); border-color: rgb(192, 57, 43); color: rgb(255, 255, 255); border-radius: 6px; padding: 0.5rem 1rem; text-align: center; font-weight: 500; box-shadow: rgba(192, 57, 43, 0.3) 0px 1px 2px; transition: background-color 0.2s;"
+                       onmouseover="this.style.backgroundColor='#962D22'; this.style.borderColor='#962D22';" onmouseout="this.style.backgroundColor='#C0392B'; this.style.borderColor='#C0392B';">
+                        <i class="fa fa-shopping-cart me-2"/>
+                        Select Options
+                    </a>
+                </t>
+                <t t-else="">
+                <a data-animation-selector=".o_wsale_product_images" role="button" id="add_to_cart" t-attf-class="btn js_check_product a-submit mt-2 align-items-center justify-content-center" href="#" style="background-color: rgb(192, 57, 43); border-color: rgb(192, 57, 43); color: rgb(255, 255, 255); border-radius: 6px; padding: 0.5rem 1rem; text-align: center; font-weight: 500; box-shadow: rgba(192, 57, 43, 0.3) 0px 1px 2px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#962D22'; this.style.borderColor='#962D22';" onmouseout="this.style.backgroundColor='#C0392B'; this.style.borderColor='#C0392B';" class="btn js_check_product a-submit mt-2 align-items-center justify-content-center">
+                    <i class="fa fa-shopping-cart me-2"/>
+                    Add to cart
+                </a>
+                </t>
+            <a t-if="not product.website_published" role="button" t-att-href="product_href" class="btn btn-sm mt-2 d-block mx-auto text-center rounded-pill" style="background-color: #C0392B; color: #FFFFFF;" title="This product is unpublished.">
+                Unpublished
+            </a>
+        </xpath>
+    </template>
+
+    <template id="product_price_extend" inherit_id="website_sale.product_price">
+        <xpath expr="//div[@itemprop='offers']" position="attributes">
+            <attribute name="t-if">
+                request.website.company_id.show_price
+            </attribute>
+        </xpath>
+    </template>    
+
+
+    <template id="total_extend" inherit_id="website_sale.total">
+        <xpath expr="//div[@id='cart_total']" position="attributes">
+            <attribute name="t-if">
+                request.website.company_id.show_price
+            </attribute>
+        </xpath>
+    </template>
+
+    <template id="cart_line_price_extend" inherit_id="website_sale.cart_lines">
+        <xpath expr="//div[@name='website_sale_cart_line_price']" position="attributes">
+            <attribute name="t-if">
+                request.website.company_id.show_price
+            </attribute>
+        </xpath>
+    </template>
+
+    <template id="header_cart_link_extend"
+              inherit_id="website_sale.header_cart_link">
+            <xpath expr="//a[@href='/shop/cart']" position="replace">
+                <t t-set="campaign_id" t-value="request.httprequest.args.get('campaign_id', '0')" />
+                <t t-set="medium_id" t-value="request.httprequest.args.get('medium_id', '0')" />
+                <t t-set="source_id" t-value="request.httprequest.args.get('source_id', '0')" />
+                
+                <t t-set="marketing_url" t-value="'?campaign_id='+campaign_id+'&amp;medium_id='+medium_id+'&amp;source_id='+source_id" />
+                <t t-set="_rfq_mode" t-value="request.website.company_id.allow_rfq"/>
+                <t t-set="_cart_qty" t-value="request.website.get_rfq_quantity() if _rfq_mode else website_sale_cart_quantity"/>
+                <a  t-att-href="('/shop/rfq' if _rfq_mode else '/shop/cart') + marketing_url"  t-attf-class="#{_link_class}" aria-label="eCommerce cart">
+                <div t-attf-class="#{_icon_wrap_class}">
+                    <i t-if="_icon" class="fa fa-shopping-cart fa-stack"/>
+                    <sup t-attf-class="my_cart_quantity badge bg-primary #{_badge_class} #{'d-none' if (_cart_qty == 0) else ''}" t-esc="_cart_qty" t-att-data-order-id="request.session.get('sale_order_id', '')"/>
+                </div>
+                <span t-if="_text" t-attf-class="#{_text_class}">My Cart</span>
+                </a>
+        </xpath>
+     </template>
+
+    <template id="express_checkout_form_extend" inherit_id="payment_stripe.express_checkout_form">
+        <xpath expr="//div[@name='o_express_checkout_container']" position="attributes">
+            <attribute name="t-if">
+                request.website.company_id.show_price
+            </attribute>
+        </xpath>
+    </template>
+
+    <template id="express_checkout_form_payment_demo_extend" inherit_id="payment_demo.express_checkout_form">
+        <xpath expr="//button[@type='button']" position="attributes">
+            <attribute name="t-if">
+                request.website.company_id.show_price
+            </attribute>
+        </xpath>
+    </template>
+
+
+    <!-- RFQ list page (session based, replaces /shop/cart in RFQ mode) -->
+    <template id="rfq_list_page" name="RFQ List">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <div class="container py-4">
+                    <h3 class="mb-4">RFQ List</h3>
+                    <t t-if="lines">
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 90px;"/>
+                                        <th>Product</th>
+                                        <th style="width: 160px;">Quantity</th>
+                                        <th style="width: 60px;"/>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="lines" t-as="line">
+                                        <td>
+                                            <img t-att-src="website.image_url(line['product'], 'image_128')"
+                                                 class="img img-fluid" style="max-width: 64px;" alt=""/>
+                                        </td>
+                                        <td>
+                                            <a t-att-href="line['product'].product_tmpl_id.website_url"
+                                               t-esc="line['product'].display_name"/>
+                                        </td>
+                                        <td>
+                                            <input type="number" min="0" step="any"
+                                                   class="form-control o_ninaad_rfq_qty"
+                                                   t-att-data-product-id="line['product'].id"
+                                                   t-att-value="line['qty']"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="#" class="o_ninaad_rfq_remove text-danger"
+                                               t-att-data-product-id="line['product'].id"
+                                               title="Remove">
+                                                <i class="fa fa-trash-o"/>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <a href="/shop" class="btn btn-secondary">
+                                <i class="fa fa-angle-left me-2"/>Continue shopping
+                            </a>
+                            <div style="min-width: 260px;">
+                                <t t-call="ninaad_website_rfq.rfq_quote_button"/>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <p class="text-muted">Your RFQ list is empty.</p>
+                        <a href="/shop" class="btn btn-primary">Continue shopping</a>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

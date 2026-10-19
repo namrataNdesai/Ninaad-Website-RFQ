@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="email_template_rfq_request" model="mail.template">
+            <field name="name">Website RFQ: Request Received</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="subject">We received your RFQ - {{ object.name }}</field>
+            <field name="email_from">{{ (object.company_id or user.company_id).email_formatted }}</field>
+            <field name="email_to">{{ object.email_from }}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+                <div style="font-family:Arial,sans-serif;font-size:14px;color:#222;max-width:600px;margin:0 auto;">
+                    <t t-set="company" t-value="object.company_id or user.company_id"/>
+                    <t t-set="phone" t-value="company.phone or ''"/>
+                    <t t-set="whatsapp" t-value="company.partner_id.mobile or company.phone or ''"/>
+                    <t t-set="whatsapp_digits" t-value="whatsapp.replace('+', '').replace(' ', '').replace('-', '')"/>
+                    <t t-set="tel_value" t-value="phone.replace(' ', '').replace('-', '')"/>
+
+                    <div style="background-color:#000;padding:20px;text-align:center;">
+                        <img t-attf-src="/logo.png?company={{ company.id }}" t-att-alt="company.name"
+                            style="vertical-align:middle;max-height:60px;max-width:220px;"/>
+                    </div>
+
+                    <div style="padding:24px;border:1px solid #e5e5e5;border-top:none;">
+                        <p style="margin:0 0 16px 0;">Dear <t t-out="object.contact_name or 'Sir/Madam'"/>,</p>
+                        <p style="margin:0 0 16px 0;">Thank you for your request for quotation. We have received it, and our team will get back to you as soon as possible.</p>
+
+                        <p style="margin:0 0 6px 0;"><b>Your requested products</b></p>
+                        <table style="border-collapse:collapse;width:100%;margin-bottom:16px;" border="1" cellpadding="6">
+                            <thead>
+                                <tr style="background:#f2f2f2;">
+                                    <th align="left">Product</th>
+                                    <th align="right">Quantity</th>
+                                    <th align="right">Unit Price</th>
+                                    <th align="right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="total" t-value="0.0"/>
+                                <t t-foreach="object.product_line" t-as="line">
+                                    <t t-set="price" t-value="line.product_id.list_price"/>
+                                    <t t-set="subtotal" t-value="price * line.qty"/>
+                                    <t t-set="total" t-value="total + subtotal"/>
+                                    <tr>
+                                        <td><t t-out="line.product_id.display_name"/></td>
+                                        <td align="right"><t t-out="line.qty"/></td>
+                                        <td align="right"><t t-out="price" t-options='{"widget": "monetary", "display_currency": company.currency_id}'/></td>
+                                        <td align="right"><t t-out="subtotal" t-options='{"widget": "monetary", "display_currency": company.currency_id}'/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr style="background:#f2f2f2;">
+                                    <td colspan="3" align="right"><strong>Total</strong></td>
+                                    <td align="right"><strong><t t-out="total" t-options='{"widget": "monetary", "display_currency": company.currency_id}'/></strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <p style="margin:0 0 6px 0;"><b>Your submitted details</b></p>
+                        <table style="border-collapse:collapse;width:100%;margin-bottom:16px;" width="100%">
+                            <tbody>
+                                <tr><td style="padding:6px 12px 6px 0;width:35%;"><b>Name</b></td><td><t t-out="object.contact_name or '-'"/></td></tr>
+                                <tr><td style="padding:6px 12px 6px 0;"><b>Email</b></td><td><t t-out="object.email_from or '-'"/></td></tr>
+                                <tr><td style="padding:6px 12px 6px 0;"><b>Phone / WhatsApp</b></td><td><t t-out="object.phone or '-'"/></td></tr>
+                                <tr><td style="padding:6px 12px 6px 0;"><b>Company</b></td><td><t t-out="object.partner_name or object.partner_id.name or '-'"/></td></tr>
+                                <tr><td style="padding:6px 12px 6px 0;"><b>Location</b></td><td><t t-out="object.street or object.partner_id.street or '-'"/></td></tr>
+                            </tbody>
+                        </table>
+
+                        <p style="margin:0 0 6px 0;"><b>Your notes</b></p>
+                        <div style="background-color:#f7f7f7;padding:4px 12px;border-radius:4px;margin-bottom:16px;">
+                            <t t-out="object.description or '-'"/>
+                        </div>
+
+                        <t t-if="whatsapp or phone or company.email">
+                            <p style="margin:0 0 8px 0;">If your request is urgent, you can reach us directly:</p>
+                            <ul style="padding-left:18px;margin:0 0 16px 0;">
+                                <li t-if="whatsapp_digits">WhatsApp:
+                                    <a t-attf-href="https://wa.me/{{ whatsapp_digits }}" style="color:#008f8c;text-decoration:none;"><t t-out="whatsapp"/></a>
+                                </li>
+                                <li t-if="phone">Phone:
+                                    <a t-attf-href="tel:{{ tel_value }}" style="color:#008f8c;text-decoration:none;"><t t-out="phone"/></a>
+                                </li>
+                                <li t-if="company.email">Email:
+                                    <a t-attf-href="mailto:{{ company.email }}" style="color:#008f8c;text-decoration:none;"><t t-out="company.email"/></a>
+                                </li>
+                            </ul>
+                        </t>
+
+                        <p style="margin:0 0 20px 0;">Best regards,<br/><b><t t-out="company.name"/> Team</b></p>
+
+                        <div style="border-top:1px solid #e5e5e5;padding-top:16px;text-align:center;font-size:12px;color:#777;">
+                            <b style="color:#222;"><t t-out="company.name"/></b><br/>
+                            <t t-out="company.partner_id.contact_address_inline or ''"/>
+                            <t t-if="company.website"><br/>
+                                <a t-attf-href="{{ company.website }}" style="color:#777;text-decoration:none;"><t t-out="company.website"/></a>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>
